@@ -10,9 +10,9 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import Image from "next/image";
 import { ScrollArea } from "./ui/scroll-area";
+import PlayingAnimation from "./PlayingAnimation";
+import Image from "next/image";
 
 interface TrackListProps {
   tracks: SearchResult[];
@@ -20,19 +20,19 @@ interface TrackListProps {
   setCurrentTrack: (track: SearchResult) => void;
   toggleSidebar: () => void;
   onTrackSelect: (track: SearchResult) => void;
+  isPlaying: boolean;
 }
 
 const TrackList: React.FC<TrackListProps> = ({
   tracks,
   currentTrack,
-  setCurrentTrack,
-  toggleSidebar,
   onTrackSelect,
+  toggleSidebar,
+  isPlaying,
 }) => {
-  const handleTrackClick = (track: SearchResult) => {
-    setCurrentTrack(track);
-    onTrackSelect(track);
-  };
+  if (!tracks || tracks.length === 0) {
+    return <div>No tracks available</div>;
+  }
 
   return (
     <div className="flex-1 p-4 pr-0">
@@ -46,6 +46,7 @@ const TrackList: React.FC<TrackListProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[50px]">#</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>Title</TableHead>
               <TableHead className="hidden md:table-cell">Channel</TableHead>
             </TableRow>
@@ -59,30 +60,27 @@ const TrackList: React.FC<TrackListProps> = ({
                     ? "bg-muted"
                     : ""
                 }`}
-                onClick={() => handleTrackClick(track)}
+                onClick={() => onTrackSelect(track)}
               >
-                <TableCell>{index + 1}</TableCell>
-                <TableCell className="flex items-center">
-                  <div className="w-10 h-10 mr-3">
-                    <AspectRatio ratio={1 / 1}>
-                      <Image
-                        src={track.snippet.thumbnails.default.url}
-                        alt={track.snippet.title}
-                        className="object-cover w-full h-full"
-                        width={40}
-                        height={40}
-                      />
-                    </AspectRatio>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium line-clamp-1">
-                      {track.snippet.title}
-                    </h3>
-                    <h3 className="text-sm text-muted-foreground md:hidden">
-                      {track.snippet.channelTitle}
-                    </h3>
+                <TableCell>
+                  {track.id.videoId === currentTrack?.id.videoId &&
+                  isPlaying ? (
+                    <PlayingAnimation />
+                  ) : (
+                    index + 1
+                  )}
+                </TableCell>
+                <TableCell className="">
+                  <div className="relative w-full h-auto aspect-square rounded-lg overflow-hidden">
+                    <Image
+                      src={track.snippet.thumbnails.default.url}
+                      alt="Thumbnail"
+                      className="w-full h-full object-cover"
+                      fill
+                    />
                   </div>
                 </TableCell>
+                <TableCell>{track.snippet.title}</TableCell>
                 <TableCell className="hidden md:table-cell">
                   {track.snippet.channelTitle}
                 </TableCell>

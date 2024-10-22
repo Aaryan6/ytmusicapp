@@ -7,8 +7,8 @@ import TrackList from "@/components/TrackList";
 import NowPlaying from "@/components/NowPlaying";
 import PlayerControls from "@/components/PlayerControls";
 import { searchVideos, SearchResult } from "@/services/youtube";
-import { loadScript } from "@/utils/loadScript";
 import { getRecentSearches, addRecentSearch } from "@/utils/localStorage";
+import { loadScript } from "@/utils/loadScript";
 
 declare global {
   interface Window {
@@ -23,16 +23,14 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const playerRef = useRef<YT.Player | null>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
-
+  const [volume, setVolume] = useState(100);
   const [isYouTubeApiReady, setIsYouTubeApiReady] = useState(false);
 
-  const [volume, setVolume] = useState(100);
-
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const playerRef = useRef<YT.Player | null>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadScript("https://www.youtube.com/iframe_api")
@@ -42,16 +40,10 @@ export default function Home() {
         };
       })
       .catch((error) => console.error("Error loading YouTube API:", error));
-  }, []);
 
-  useEffect(() => {
     const searches = getRecentSearches();
     setRecentSearches(searches);
-    if (searches.length > 0) {
-      setSearchQuery(searches[0]);
-    } else {
-      setSearchQuery("music"); // fallback to "music" if no recent searches
-    }
+    setSearchQuery(searches.length > 0 ? searches[0] : "music");
   }, []);
 
   useEffect(() => {
@@ -72,7 +64,7 @@ export default function Home() {
     };
 
     fetchTracks();
-  }, [searchQuery]);
+  }, [searchQuery, currentTrack]);
 
   useEffect(() => {
     if (!isYouTubeApiReady || !playerContainerRef.current || !currentTrack)
@@ -85,7 +77,7 @@ export default function Home() {
           width: "0",
           videoId: currentTrack.id.videoId,
           playerVars: {
-            autoplay: 1, // Change this to 1 to autoplay
+            autoplay: 1,
             controls: 0,
             disablekb: 1,
           },
@@ -166,6 +158,7 @@ export default function Home() {
             setCurrentTrack={setCurrentTrack}
             toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             onTrackSelect={handleTrackSelect}
+            isPlaying={isPlaying}
           />
           {currentTrack && <NowPlaying track={currentTrack} />}
         </div>
