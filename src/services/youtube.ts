@@ -51,21 +51,16 @@ export async function searchVideos(query: string): Promise<SearchResult[]> {
     query
   )}&type=video&maxResults=10&key=${YOUTUBE_API_KEY}`;
 
-  console.log("API request URL:", url.replace(YOUTUBE_API_KEY!, "API_KEY"));
-
   try {
     const response = await fetch(url);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("YouTube API Error:", errorText);
       throw new Error(
-        `Failed to fetch videos: ${response.status} ${response.statusText}. ${errorText}`
+        `Failed to fetch videos: ${response.status} ${response.statusText}`
       );
     }
 
     const data = await response.json();
-    console.log("YouTube API Response:", data);
     return data.items;
   } catch (error) {
     console.error("Error in searchVideos:", error);
